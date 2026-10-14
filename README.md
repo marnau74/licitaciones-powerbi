@@ -76,7 +76,7 @@ flowchart LR
 
 ## Comprobaciones
 
-- **Exportación** (pytest, 25 pruebas): sobre una base del radar en miniatura con los casos difíciles a propósito
+- **Exportación** (pytest, 28 pruebas): sobre una base del radar en miniatura con los casos difíciles a propósito
   (lotes, códigos que no están en el catálogo, territorio solo de comunidad o en el extranjero, importes absurdos) y
   la estructura del proyecto PBIP.
 - **Modelo** (`validar/`, .NET con la biblioteca oficial **TOM**): lee el TMDL como lo hace Power BI y comprueba que
