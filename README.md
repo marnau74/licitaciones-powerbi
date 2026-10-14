@@ -13,7 +13,19 @@ Se versiona en Git y el DAX se lee aquí mismo, sin abrir Power BI:
 [relaciones](Contratacion.SemanticModel/definition/relationships.tmdl) ·
 [seguridad por filas](Contratacion.SemanticModel/definition/roles/Comunidad.tmdl).
 
-<!-- CIFRAS -->
+| | Enero a septiembre de 2026 |
+|---|---:|
+| Licitaciones publicadas | 125.658 |
+| Importe licitado (sin IVA) | 73.644 millones de € |
+| Importe mediano por licitación | 50.413 € |
+| Resultados adjudicados | 110.448 |
+| Baja media sobre el importe licitado | 11,9 % |
+| Adjudicaciones con una sola oferta | 48,7 % |
+| Importe adjudicado a pymes | 28,0 % |
+
+Todas las cifras, y las de cada mes, tipo de contrato y comunidad, en [cifras de control](docs/cifras-de-control.md).
+La media (604.372 €) está muy por encima de la mediana: unos pocos contratos enormes (un acuerdo marco de suministro
+de energía de 4.680 millones, trenes de alta velocidad...) pesan mucho en el total.
 
 ## Los datos
 
@@ -57,7 +69,7 @@ flowchart LR
 
 ## Comprobaciones
 
-- **Exportación** (pytest, 24 pruebas): sobre una base del radar en miniatura con los casos difíciles a propósito
+- **Exportación** (pytest, 25 pruebas): sobre una base del radar en miniatura con los casos difíciles a propósito
   (lotes, códigos que no están en el catálogo, territorio solo de comunidad o en el extranjero, importes absurdos) y
   la estructura del proyecto PBIP.
 - **Modelo** (`validar/`, .NET con la biblioteca oficial **TOM**): lee el TMDL como lo hace Power BI y comprueba que
@@ -67,6 +79,11 @@ flowchart LR
 - **Cifras de control** ([docs/cifras-de-control.md](docs/cifras-de-control.md)): lo que tiene que dar cada medida,
   calculado con DuckDB sobre los mismos Parquet. Con el proyecto abierto en Power BI Desktop, `validar` se conecta a
   su motor, refresca el modelo y **evalúa cada medida con DAX** contra esas cifras.
+
+Hecho con Power BI Desktop 2.158 (octubre de 2026): Desktop abre el proyecto tal cual, el refresco carga en cada tabla
+exactamente las filas exportadas y **las 40 cifras de control coinciden** (15 medidas y 25 valores de los desgloses).
+Además se comprobó con consultas DAX que el grupo de cálculo da el mes anterior y el acumulado correctos, que el
+ranking ordena bien y que el rol «Comunidad» no deja ver nada a una cuenta que no está en la tabla de acceso.
 
 ## Ponerlo en marcha
 
@@ -91,6 +108,10 @@ está en `msmdsrv.port.txt`, dentro de la carpeta de trabajo de Desktop):
 
 ```bash
 dotnet run --project validar -- Contratacion.SemanticModel/definition
+```
+
+```bash
+dotnet run --project validar -- refrescar <puerto>
 ```
 
 ```bash

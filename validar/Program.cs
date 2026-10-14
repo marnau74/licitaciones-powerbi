@@ -8,6 +8,7 @@
 //
 //   dotnet run --project validar -- refrescar <puerto>
 //   dotnet run --project validar -- comparar <puerto> datos/cifras.json
+//   dotnet run --project validar -- consultar <puerto> "EVALUATE ..." [usuario con el rol Comunidad]
 
 using System.Text.RegularExpressions;
 using Microsoft.AnalysisServices.Tabular;
@@ -18,6 +19,10 @@ switch (args)
         return Desktop.Refrescar(int.Parse(puerto));
     case ["comparar", var puerto, var cifras]:
         return Desktop.Comparar(int.Parse(puerto), cifras);
+    case ["consultar", var puerto, var dax]:
+        return Desktop.Consultar(int.Parse(puerto), dax, null);
+    case ["consultar", var puerto, var dax, var usuario]:
+        return Desktop.Consultar(int.Parse(puerto), dax, usuario);
 }
 
 var carpeta = args.Length > 0 ? args[0] : "Contratacion.SemanticModel/definition";

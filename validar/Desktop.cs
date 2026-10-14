@@ -75,6 +75,34 @@ static class Desktop
         return fallos == 0 ? 0 : 1;
     }
 
+    /// <summary>
+    /// Ejecuta una consulta DAX y enseña el resultado. Con <paramref name="usuario"/>, como ese usuario con el rol
+    /// «Comunidad» (para probar la seguridad por filas sin abrir «Ver como»).
+    /// </summary>
+    public static int Consultar(int puerto, string dax, string? usuario)
+    {
+        var cadena = $"Data Source=localhost:{puerto}"
+            + (usuario switch
+            {
+                null => "",
+                // Con el rol y la cuenta de quien ejecuta (el motor local no deja suplantar un correo cualquiera).
+                "yo" => ";Roles=Comunidad",
+                _ => $";Roles=Comunidad;EffectiveUserName={usuario}",
+            });
+        using var conexion = new AdomdConnection(cadena);
+        conexion.Open();
+        using var comando = new AdomdCommand(dax, conexion);
+        using var lector = comando.ExecuteReader();
+        var columnas = Enumerable.Range(0, lector.FieldCount).Select(lector.GetName).ToList();
+        Console.WriteLine(string.Join(" | ", columnas));
+        while (lector.Read())
+        {
+            Console.WriteLine(string.Join(" | ", Enumerable.Range(0, lector.FieldCount)
+                .Select(i => Convert.ToString(lector.GetValue(i), CultureInfo.GetCultureInfo("es-ES")))));
+        }
+        return 0;
+    }
+
     static long Filas(int puerto, string tabla)
     {
         using var conexion = new AdomdConnection($"Data Source=localhost:{puerto}");
