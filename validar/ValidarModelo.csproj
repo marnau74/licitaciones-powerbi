@@ -13,7 +13,7 @@
     <!-- La biblioteca oficial del modelo tabular (TOM), con el lector de TMDL. -->
     <PackageReference Include="Microsoft.AnalysisServices" Version="19.117.0" />
     <!-- Para consultar con DAX el modelo abierto en Power BI Desktop (comparar con las cifras de control). -->
-    <PackageReference Include="Microsoft.AnalysisServices.AdomdClient" Version="19.117.0" />
+    <PackageReference Include="Microsoft.AnalysisServices.AdomdClient" Version="19.118.3" />
   </ItemGroup>
 
 </Project>
