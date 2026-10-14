@@ -40,8 +40,10 @@ negativos y el mismo número de licitaciones por mes que en la base.
 
 **Datos personales.** Entre los adjudicatarios hay personas físicas (autónomos) que la Plataforma publica con su nombre
 y su DNI. En los Parquet salen como «Persona física» y con un código en lugar del DNI, calculado con una sal aleatoria
-que no se guarda: se pueden contar y la relación del modelo funciona, pero no se puede volver al DNI. Las empresas y
-las administraciones no cambian. Las cifras de control son las mismas.
+que no se guarda: se pueden contar y la relación del modelo funciona, pero no se puede volver al DNI. Muchos NIF llegan
+mal escritos o recortados (`0002`, `1806441B`); cuando el NIF no es el de una entidad española y el nombre no tiene nada
+de organización (forma jurídica, UTE, fundación, universidad…), se trata igual y sale como «Posible persona física»:
+ante la duda, se protege. Las empresas y las administraciones no cambian. Las cifras de control son las mismas.
 
 ## Modelo
 

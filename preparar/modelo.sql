@@ -85,8 +85,9 @@ SELECT
     nullif(l.valor_estimado, 0) AS valor_estimado,
     l.num_lotes,
     l.financiacion_ue,
-    -- Días que tuvieron las empresas para presentar oferta (nulo si no hay plazo publicado).
-    CASE WHEN l.plazo_presentacion IS NOT NULL
+    -- Días que tuvieron las empresas para presentar oferta. Nulo si no hay plazo publicado o si no es creíble: un plazo
+    -- anterior a la publicación (la licitación se publica ya cerrada, al adjudicarse) o de más de un año.
+    CASE WHEN date_diff('day', l.fecha_publicacion, CAST(l.plazo_presentacion AS DATE)) BETWEEN 0 AND 365
          THEN date_diff('day', l.fecha_publicacion, CAST(l.plazo_presentacion AS DATE)) END AS dias_de_plazo
 FROM licitaciones AS l;
 

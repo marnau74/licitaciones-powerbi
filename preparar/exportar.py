@@ -23,6 +23,26 @@ SQL = Path(__file__).with_name("modelo.sql")
 # NIF de persona física: DNI (8 cifras y letra) o NIE y similares (K, L, M, X, Y, Z, 7 cifras y letra), con o sin «ES».
 NIF_DE_PERSONA = r"^(ES)?([0-9]{8}|[KLMXYZ][0-9]{7})[A-Z]$"
 
+# NIF de una entidad española: letra de la forma jurídica, 7 cifras y el carácter de control.
+NIF_DE_ENTIDAD = r"^(ES)?[ABCDEFGHJNPQRSUVW][0-9]{7}[0-9A-J]$"
+
+# Palabras que delatan que el adjudicatario es una organización (forma jurídica, tipo de entidad o actividad). Hacen
+# falta porque muchos NIF llegan mal: recortados («0002»), sin letra, con una cifra de más o extranjeros.
+ORGANIZACION = (
+    r"(?i)\b(S\.?\s?L\.?(\s?U\.?)?|S\.?\s?A\.?(\s?U\.?)?|S\.?\s?COOP\.?|SOCIEDAD|COOPERATIVA|U\.?\s?T\.?\s?E\.?|"
+    r"LTDA?\.?|LIMITED|GMBH|INC\.?|LLC|LLP|PLC|B\.?\s?V\.?|N\.?\s?V\.?|S\.?R\.?L\.?|SARL|SAS|S\.?P\.?A\.?|AG|AB|OY|"
+    r"A/S|APS|LDA|CORP\.?|CORPORATION|COMPANY|CO\.|GROUP|GRUPO|FUNDACI[OÓ]N|FOUNDATION|FONDATION|STIFTUNG|"
+    r"ASOCIACI[OÓ]N|ASSOCIATION|ASSOCIATES|INSTITUT\w*|UNIVERSI\w*|AYUNTAMIENTO|CONSORCIO|COLEGIO|CLUB|FEDERACI\w*|"
+    r"FEDERATION|CENT(RO|ER|RE)|THEAT(RE|ER)|TEATRO|D\.?O\.?O\.?|PTY|O[UÜ]|KFT|LIMITADA|C\.?\s?B\.?|S\.?C\.?P\.?|"
+    r"SOCI[EÉ]T[EÉ]|GESELLSCHAFT|E\.?\s?V\.?|ORGANI[SZ]ATION|COUNCIL|NETWORK|SERVICES|SERVICIOS|SOLUTIONS|SOLUCIONES|"
+    r"SYSTEMS|SISTEMAS|TECHNOLOG\w*|TECNOLOG\w*|LABORATOR\w*|CONSULTING|CONSULTOR\w*|ACADEM\w*|MUSE(UM|O)|ORCHEST\w*|"
+    r"ORQUESTA|BANK|BANCO|INSURANCE|SEGUROS|INTERNATIONAL|GLOBAL|MINISTER\w*|GOVERNMENT|GOBIERNO|EMBAJADA|EMBASSY|"
+    r"EDITORIAL|PUBLISHING|PRESS|HOTEL|AIRLINES|PRODUCTIONS?|PRODUCCIONES|STUDIOS?|ESTUDIO|AGENC\w*|EXPERTOS|"
+    r"ARQUITECTOS|ABOGADOS|ASESORES|INGENIER\w*|ENGINEERING|COMMUNICATIONS|COMUNICACI\w*|MEDIA|EXPORTS?|TRADING|"
+    r"GALLERY|GALER[IÍ]A|DIGITAL|ANALYTICS|ENGINES|EQUIPMENT|MANAGEMENT|EXHIBITION|PROPERTY|CONFIDENCIAL|LICITADORES|"
+    r"VARIOS)\b"
+)
+
 # Tabla -> clave primaria.
 CLAVES = {
     "hechos_licitacion": "id_licitacion",
@@ -86,18 +106,38 @@ def seudonimizar(con: duckdb.DuckDBPyConnection) -> None:
 
     La Plataforma de Contratación publica su nombre y su DNI, pero eso no justifica redistribuirlos en bloque. Su NIF se
     cambia por un código que sale de un resumen con una sal aleatoria que no se guarda: es el mismo en las dos tablas
-    (la relación del modelo sigue funcionando y se pueden contar) pero no se puede volver al DNI. El nombre pasa a ser
-    «Persona física». Las empresas y las administraciones no cambian.
+    (la relación del modelo sigue funcionando y se pueden contar) pero no se puede volver al DNI.
+
+    Con un NIF de persona, el nombre pasa a ser «Persona física». Muchos NIF llegan mal escritos o recortados; si el NIF
+    no es el de una entidad española y el nombre no tiene nada de organización, se trata igual y el nombre pasa a ser
+    «Posible persona física»: ante la duda, se protege. Las empresas y las administraciones no cambian.
     """
     sal = secrets.token_hex(16)
-    codigo = "'PF-' || upper(substr(sha256(nif_adjudicatario || ?), 1, 12))"
-    es_persona = f"regexp_matches(nif_adjudicatario, '{NIF_DE_PERSONA}')"
-    con.execute(f"UPDATE hechos_adjudicacion SET nif_adjudicatario = {codigo} WHERE {es_persona}", [sal])
     con.execute(
-        f"UPDATE dim_adjudicatario SET nif_adjudicatario = {codigo}, adjudicatario = 'Persona física' "
-        f"WHERE {es_persona}",
+        f"""
+        CREATE OR REPLACE TEMP TABLE seudonimos AS
+        SELECT
+            nif_adjudicatario AS nif,
+            'PF-' || upper(substr(sha256(nif_adjudicatario || ?), 1, 12)) AS codigo,
+            CASE WHEN regexp_matches(nif_adjudicatario, '{NIF_DE_PERSONA}') THEN 'Persona física'
+                 ELSE 'Posible persona física' END AS nombre
+        FROM dim_adjudicatario
+        WHERE regexp_matches(nif_adjudicatario, '{NIF_DE_PERSONA}')
+           OR (nif_adjudicatario <> 'SIN-NIF'
+               AND NOT regexp_matches(nif_adjudicatario, '{NIF_DE_ENTIDAD}')
+               AND NOT regexp_matches(coalesce(adjudicatario, ''), '{ORGANIZACION}'))
+        """,
         [sal],
     )
+    con.execute(
+        "UPDATE hechos_adjudicacion AS h SET nif_adjudicatario = s.codigo FROM seudonimos AS s "
+        "WHERE h.nif_adjudicatario = s.nif"
+    )
+    con.execute(
+        "UPDATE dim_adjudicatario AS d SET nif_adjudicatario = s.codigo, adjudicatario = s.nombre "
+        "FROM seudonimos AS s WHERE d.nif_adjudicatario = s.nif"
+    )
+    con.execute("DROP TABLE seudonimos")
 
 
 def comprobar(con: duckdb.DuckDBPyConnection, periodo: Periodo) -> list[str]:

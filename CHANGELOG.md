@@ -3,6 +3,15 @@
 Formato de [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/); versiones con
 [versionado semántico](https://semver.org/lang/es/).
 
+## [0.1.1] - 2026-10-14
+
+### Corregido
+
+- Los adjudicatarios personas físicas con el NIF mal escrito o recortado salían con su nombre: ahora se seudonimizan
+  también («Posible persona física»).
+- Los días de plazo anteriores a la publicación (licitaciones publicadas ya cerradas) o de más de un año contaban en
+  la mediana; ahora quedan vacíos. La mediana pasa de 15 a 17 días.
+
 ## [0.1.0] - 2026-10-14
 
 Primera versión.

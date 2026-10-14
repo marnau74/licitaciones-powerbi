@@ -128,6 +128,22 @@ def test_dias_de_plazo(con):
     assert filas(con, "SELECT dias_de_plazo FROM hechos_licitacion WHERE id_licitacion = 10") == [(22,)]
 
 
+def test_un_plazo_anterior_a_la_publicacion_o_de_mas_de_un_anio_no_cuenta():
+    conexion = duckdb.connect()
+    conexion.execute(ESQUEMA)
+    conexion.execute(
+        """UPDATE radar.public.licitacion SET plazo_presentacion = CASE id
+               WHEN 11 THEN TIMESTAMPTZ '2026-01-05 13:00:00+00'
+               WHEN 12 THEN TIMESTAMPTZ '2028-01-01 13:00:00+00' END
+           WHERE id IN (11, 12)"""
+    )
+    construir(conexion, PERIODO)
+    assert filas(conexion, "SELECT dias_de_plazo FROM hechos_licitacion WHERE id_licitacion IN (11, 12)") == [
+        (None,),
+        (None,),
+    ]
+
+
 def test_importe_licitado_del_lote_o_de_la_licitacion(con):
     assert dict(filas(con, "SELECT id_resultado, importe_licitado FROM hechos_adjudicacion")) == {
         100: 120000,
@@ -178,6 +194,28 @@ def test_las_personas_fisicas_no_salen_con_su_nombre_ni_su_dni():
     assert filas(conexion, "SELECT adjudicatario FROM dim_adjudicatario WHERE nif_adjudicatario = 'B87654321'") == [
         ("Software Murcia SL",)
     ]
+
+
+def test_con_el_nif_mal_escrito_se_protege_a_quien_no_parece_una_organizacion():
+    conexion = duckdb.connect()
+    conexion.execute(ESQUEMA)
+    conexion.execute(
+        """INSERT INTO radar.public.resultado VALUES
+        (106, 11, NULL, '8', DATE '2026-04-12', 1, 'SANDRA RUBIO PÉREZ', '0002', 30000, true),
+        (107, 11, NULL, '8', DATE '2026-04-13', 1, 'Rubén Llaquet Granado', '1806441B', 20000, true),
+        (108, 11, NULL, '8', DATE '2026-04-14', 1, 'Hormigones del Sur, S.L.', '5740', 10000, true),
+        (109, 11, NULL, '8', DATE '2026-04-15', 1, 'Elsevier B.V.', 'NL005033019B01', 5000, false)"""
+    )
+    construir(conexion, PERIODO)
+
+    nombres = [nombre for (nombre,) in filas(conexion, "SELECT adjudicatario FROM dim_adjudicatario ORDER BY 1")]
+    assert nombres.count("Posible persona física") == 2
+    assert "Hormigones del Sur, S.L." in nombres and "Elsevier B.V." in nombres
+    volcado = str(filas(conexion, "SELECT * FROM dim_adjudicatario")) + str(
+        filas(conexion, "SELECT * FROM hechos_adjudicacion")
+    )
+    assert "RUBIO" not in volcado and "Llaquet" not in volcado and "1806441B" not in volcado
+    assert comprobar(conexion, PERIODO) == []
 
 
 def test_adjudicado_y_desierto(con):

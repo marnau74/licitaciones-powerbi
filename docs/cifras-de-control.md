@@ -12,7 +12,7 @@ Periodo: del 2026-01-01 al 2026-09-30 (fecha de publicación). Licitaciones anul
 | Importe medio | 604.372 € |
 | Importe mediano | 50.413 € |
 | % con fondos UE | 7,1 % |
-| Días de plazo (mediana) | 15 |
+| Días de plazo (mediana) | 17 |
 | Adjudicaciones | 110.448 |
 | Importe adjudicado | 23.818.434.195 € |
 | % de baja | 11,9 % |
