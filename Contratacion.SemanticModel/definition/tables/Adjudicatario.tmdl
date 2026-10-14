@@ -1,0 +1,27 @@
+/// Empresas adjudicatarias, agrupadas por NIF.
+table Adjudicatario
+
+	column 'NIF del adjudicatario'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: nif_adjudicatario
+
+	column Adjudicatario
+		dataType: string
+		summarizeBy: none
+		sourceColumn: adjudicatario
+
+	/// Ha declarado ser pyme en alguna adjudicación.
+	column 'Es pyme'
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: pyme
+
+	partition Adjudicatario = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(CarpetaDeDatos & "dim_adjudicatario.parquet")),
+				    Tipos = Table.TransformColumnTypes(Origen, {{"nif_adjudicatario", type text}, {"adjudicatario", type text}, {"pyme", type logical}})
+				in
+				    Tipos

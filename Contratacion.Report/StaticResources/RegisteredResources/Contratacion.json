@@ -1,0 +1,114 @@
+{
+  "name": "Contratación",
+  "dataColors": [
+    "#1D4ED8",
+    "#7EA2FF",
+    "#15703A",
+    "#8A4B06",
+    "#556070",
+    "#B5BFCC",
+    "#0D1420",
+    "#A61B1B"
+  ],
+  "foreground": "#1C2430",
+  "foregroundNeutralSecondary": "#556070",
+  "foregroundNeutralTertiary": "#8A94A3",
+  "background": "#FFFFFF",
+  "backgroundLight": "#F6F7F9",
+  "backgroundNeutral": "#D7DDE5",
+  "tableAccent": "#1D4ED8",
+  "good": "#15703A",
+  "neutral": "#8A4B06",
+  "bad": "#A61B1B",
+  "maximum": "#1D4ED8",
+  "center": "#7EA2FF",
+  "minimum": "#E3EAFC",
+  "null": "#D7DDE5",
+  "textClasses": {
+    "callout": {
+      "fontSize": 28,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#1C2430"
+    },
+    "title": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#1C2430"
+    },
+    "header": {
+      "fontSize": 12,
+      "fontFace": "Segoe UI Semibold",
+      "color": "#1C2430"
+    },
+    "label": {
+      "fontSize": 10,
+      "fontFace": "Segoe UI",
+      "color": "#556070"
+    }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "border": [
+          {
+            "show": false
+          }
+        ],
+        "dropShadow": [
+          {
+            "show": false
+          }
+        ],
+        "background": [
+          {
+            "show": true,
+            "transparency": 0
+          }
+        ],
+        "visualHeader": [
+          {
+            "show": true
+          }
+        ]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [
+          {
+            "color": {
+              "solid": {
+                "color": "#F6F7F9"
+              }
+            },
+            "transparency": 0
+          }
+        ]
+      }
+    },
+    "card": {
+      "*": {
+        "labels": [
+          {
+            "fontSize": 24,
+            "color": {
+              "solid": {
+                "color": "#1C2430"
+              }
+            }
+          }
+        ],
+        "categoryLabels": [
+          {
+            "fontSize": 10,
+            "color": {
+              "solid": {
+                "color": "#556070"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

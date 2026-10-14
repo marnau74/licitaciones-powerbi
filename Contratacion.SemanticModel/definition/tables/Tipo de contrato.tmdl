@@ -1,0 +1,22 @@
+/// Obras, servicios, suministros...
+table 'Tipo de contrato'
+
+	column 'Código de tipo de contrato'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_tipo_contrato
+
+	column 'Tipo de contrato'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: tipo_contrato
+
+	partition 'Tipo de contrato' = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(CarpetaDeDatos & "dim_tipo_contrato.parquet")),
+				    Tipos = Table.TransformColumnTypes(Origen, {{"cod_tipo_contrato", type text}, {"tipo_contrato", type text}})
+				in
+				    Tipos

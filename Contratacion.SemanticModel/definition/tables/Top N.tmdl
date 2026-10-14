@@ -1,0 +1,14 @@
+/// Valores para el segmentador de cuántos órganos o adjudicatarios enseñar en los rankings.
+table 'Top N'
+
+	column 'Top N'
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Top N]
+
+	partition 'Top N' = calculated
+		mode: import
+		source = SELECTCOLUMNS ( GENERATESERIES ( 5, 30, 5 ), "Top N", [Value] )
+

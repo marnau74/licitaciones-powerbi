@@ -1,0 +1,26 @@
+[project]
+name = "licitaciones-powerbi"
+version = "0.1.0"
+description = "Preparación de los datos del informe de Power BI sobre la contratación pública española (2026)."
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Mario Arnau" }]
+requires-python = ">=3.13"
+dependencies = ["duckdb>=1.5"]
+
+[dependency-groups]
+dev = ["pytest>=8.4", "ruff>=0.16"]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

@@ -1,0 +1,64 @@
+relationship licitaciones_fecha
+	fromColumn: Licitaciones.'Fecha de publicación'
+	toColumn: Fecha.Fecha
+
+relationship licitaciones_organo
+	fromColumn: Licitaciones.'Id de órgano'
+	toColumn: 'Órgano'.'Id de órgano'
+
+relationship licitaciones_territorio
+	fromColumn: Licitaciones.'Código de territorio'
+	toColumn: Territorio.'Código de territorio'
+
+relationship licitaciones_tipo_contrato
+	fromColumn: Licitaciones.'Código de tipo de contrato'
+	toColumn: 'Tipo de contrato'.'Código de tipo de contrato'
+
+relationship licitaciones_procedimiento
+	fromColumn: Licitaciones.'Código de procedimiento'
+	toColumn: Procedimiento.'Código de procedimiento'
+
+relationship licitaciones_cpv
+	fromColumn: Licitaciones.'Código de división CPV'
+	toColumn: CPV.'Código de división CPV'
+
+relationship adjudicaciones_fecha
+	fromColumn: Adjudicaciones.'Fecha de publicación'
+	toColumn: Fecha.Fecha
+
+relationship adjudicaciones_organo
+	fromColumn: Adjudicaciones.'Id de órgano'
+	toColumn: 'Órgano'.'Id de órgano'
+
+relationship adjudicaciones_territorio
+	fromColumn: Adjudicaciones.'Código de territorio'
+	toColumn: Territorio.'Código de territorio'
+
+relationship adjudicaciones_tipo_contrato
+	fromColumn: Adjudicaciones.'Código de tipo de contrato'
+	toColumn: 'Tipo de contrato'.'Código de tipo de contrato'
+
+relationship adjudicaciones_procedimiento
+	fromColumn: Adjudicaciones.'Código de procedimiento'
+	toColumn: Procedimiento.'Código de procedimiento'
+
+relationship adjudicaciones_cpv
+	fromColumn: Adjudicaciones.'Código de división CPV'
+	toColumn: CPV.'Código de división CPV'
+
+relationship licitaciones_estado
+	fromColumn: Licitaciones.'Código de estado'
+	toColumn: Estado.'Código de estado'
+
+relationship adjudicaciones_resultado
+	fromColumn: Adjudicaciones.'Código de resultado'
+	toColumn: Resultado.'Código de resultado'
+
+relationship adjudicaciones_adjudicatario
+	fromColumn: Adjudicaciones.'NIF del adjudicatario'
+	toColumn: Adjudicatario.'NIF del adjudicatario'
+
+relationship adjudicaciones_fecha_de_adjudicacion
+	isActive: false
+	fromColumn: Adjudicaciones.'Fecha de adjudicación'
+	toColumn: Fecha.Fecha

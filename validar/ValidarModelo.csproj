@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <InvariantGlobalization>false</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- La biblioteca oficial del modelo tabular (TOM), con el lector de TMDL. -->
+    <PackageReference Include="Microsoft.AnalysisServices" Version="19.117.0" />
+    <!-- Para consultar con DAX el modelo abierto en Power BI Desktop (comparar con las cifras de control). -->
+    <PackageReference Include="Microsoft.AnalysisServices.AdomdClient" Version="19.117.0" />
+  </ItemGroup>
+
+</Project>

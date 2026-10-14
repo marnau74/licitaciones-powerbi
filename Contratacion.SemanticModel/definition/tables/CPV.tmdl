@@ -1,0 +1,21 @@
+/// División CPV (los dos primeros dígitos del código principal).
+table CPV
+
+	column 'Código de división CPV'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: cod_cpv_division
+
+	column 'División CPV'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: division_cpv
+
+	partition CPV = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(CarpetaDeDatos & "dim_cpv.parquet")),
+				    Tipos = Table.TransformColumnTypes(Origen, {{"cod_cpv_division", type text}, {"division_cpv", type text}})
+				in
+				    Tipos

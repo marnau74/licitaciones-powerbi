@@ -1,0 +1,78 @@
+/// Calendario del año, por fecha de publicación (relación activa) o de adjudicación.
+table Fecha
+	dataCategory: Time
+
+	column Fecha
+		dataType: dateTime
+		isKey
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: fecha
+
+	column 'Año'
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: anio
+
+	column Trimestre
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: trimestre
+
+	column 'Número de mes'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: mes
+
+	column Mes
+		dataType: string
+		summarizeBy: none
+		sourceColumn: nombre_mes
+		sortByColumn: 'Número de mes'
+
+	column 'Mes y año'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: mes_anio
+		sortByColumn: 'Orden de mes y año'
+
+	column 'Orden de mes y año'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: orden_mes_anio
+
+	column 'Número de día'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: dia_semana
+
+	column 'Día de la semana'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: nombre_dia
+		sortByColumn: 'Número de día'
+
+	hierarchy 'Calendario'
+		level 'Año'
+			column: 'Año'
+
+		level Trimestre
+			column: Trimestre
+
+		level Mes
+			column: Mes
+
+		level Fecha
+			column: Fecha
+
+	partition Fecha = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(CarpetaDeDatos & "dim_fecha.parquet")),
+				    Tipos = Table.TransformColumnTypes(Origen, {{"fecha", type date}, {"anio", Int64.Type}, {"trimestre", Int64.Type}, {"mes", Int64.Type}, {"nombre_mes", type text}, {"mes_anio", type text}, {"orden_mes_anio", Int64.Type}, {"dia_semana", Int64.Type}, {"nombre_dia", type text}})
+				in
+				    Tipos

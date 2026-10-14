@@ -1,0 +1,22 @@
+/// Estado de la licitación en la Plataforma.
+table Estado
+
+	column 'Código de estado'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_estado
+
+	column Estado
+		dataType: string
+		summarizeBy: none
+		sourceColumn: estado
+
+	partition Estado = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(CarpetaDeDatos & "dim_estado.parquet")),
+				    Tipos = Table.TransformColumnTypes(Origen, {{"cod_estado", type text}, {"estado", type text}})
+				in
+				    Tipos

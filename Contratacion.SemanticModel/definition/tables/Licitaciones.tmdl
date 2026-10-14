@@ -1,0 +1,109 @@
+/// Una fila por licitación publicada en el periodo (sin las anuladas).
+table Licitaciones
+
+	/// Número de la licitación en la Plataforma de Contratación.
+	column 'Número'
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: id_licitacion
+
+	column Expediente
+		dataType: string
+		summarizeBy: none
+		sourceColumn: expediente
+
+	column 'Título'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: titulo
+
+	/// Ficha de la licitación en la Plataforma de Contratación.
+	column URL
+		dataType: string
+		summarizeBy: none
+		sourceColumn: url
+		dataCategory: WebUrl
+
+	column 'Fecha de publicación'
+		dataType: dateTime
+		isHidden
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: fecha_publicacion
+
+	column 'Id de órgano'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: id_organo
+
+	column 'Código de territorio'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_territorio
+
+	column 'Código de tipo de contrato'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_tipo_contrato
+
+	column 'Código de procedimiento'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_procedimiento
+
+	column 'Código de división CPV'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_cpv_division
+
+	column 'Código de estado'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_estado
+
+	column 'Importe sin IVA'
+		dataType: decimal
+		isHidden
+		formatString: #,0.00 €
+		summarizeBy: none
+		sourceColumn: importe_sin_iva
+
+	column 'Valor estimado'
+		dataType: decimal
+		isHidden
+		formatString: #,0.00 €
+		summarizeBy: none
+		sourceColumn: valor_estimado
+
+	column Lotes
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: num_lotes
+
+	/// Financiada con fondos de la Unión Europea.
+	column 'Fondos UE'
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: financiacion_ue
+
+	column 'Días de plazo'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: dias_de_plazo
+
+	partition Licitaciones = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(CarpetaDeDatos & "hechos_licitacion.parquet")),
+				    Tipos = Table.TransformColumnTypes(Origen, {{"id_licitacion", Int64.Type}, {"expediente", type text}, {"titulo", type text}, {"url", type text}, {"fecha_publicacion", type date}, {"id_organo", Int64.Type}, {"cod_territorio", type text}, {"cod_tipo_contrato", type text}, {"cod_procedimiento", type text}, {"cod_cpv_division", type text}, {"cod_estado", type text}, {"importe_sin_iva", Currency.Type}, {"valor_estimado", Currency.Type}, {"num_lotes", Int64.Type}, {"financiacion_ue", type logical}, {"dias_de_plazo", Int64.Type}})
+				in
+				    Tipos

@@ -1,0 +1,48 @@
+/// Grupo de cálculo: la misma medida en el periodo actual, el mes anterior, su variación o lo que va de año. Evita
+/// repetir cada medida con su versión de inteligencia de tiempo.
+table Periodo
+	calculationGroup
+		precedence: 1
+
+		/// La medida tal cual.
+		calculationItem Actual = SELECTEDMEASURE ()
+			ordinal: 0
+
+		/// La medida un mes antes.
+		calculationItem 'Mes anterior' = CALCULATE ( SELECTEDMEASURE (), DATEADD ( Fecha[Fecha], -1, MONTH ) )
+			ordinal: 1
+
+		/// Diferencia con el mes anterior, en las unidades de la medida (puntos si es un porcentaje).
+		calculationItem Variación =
+				VAR Actual = SELECTEDMEASURE ()
+				VAR Anterior = CALCULATE ( SELECTEDMEASURE (), DATEADD ( Fecha[Fecha], -1, MONTH ) )
+				RETURN
+				    IF ( NOT ISBLANK ( Actual ) && NOT ISBLANK ( Anterior ), Actual - Anterior )
+			ordinal: 2
+
+		/// Variación relativa con el mes anterior. No tiene sentido para medidas que ya son porcentajes.
+		calculationItem 'Variación %' =
+				VAR Actual = SELECTEDMEASURE ()
+				VAR Anterior = CALCULATE ( SELECTEDMEASURE (), DATEADD ( Fecha[Fecha], -1, MONTH ) )
+				RETURN
+				    DIVIDE ( Actual - Anterior, Anterior )
+			ordinal: 3
+
+			formatStringDefinition = "+0.0 %;-0.0 %;0.0 %"
+
+		/// Acumulado desde el 1 de enero hasta el final del periodo del contexto.
+		calculationItem 'En lo que va de año' = CALCULATE ( SELECTEDMEASURE (), DATESYTD ( Fecha[Fecha] ) )
+			ordinal: 4
+
+	column Periodo
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Name
+		sortByColumn: Orden
+
+	column Orden
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: Ordinal
+

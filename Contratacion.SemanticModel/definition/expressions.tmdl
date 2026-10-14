@@ -1,0 +1,2 @@
+/// Carpeta con los Parquet de la exportación (preparar/exportar.py o la release del repositorio). Termina en barra.
+expression CarpetaDeDatos = "D:\Escritorio\github\licitaciones-powerbi\datos\" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]

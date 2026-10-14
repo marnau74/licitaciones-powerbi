@@ -1,0 +1,47 @@
+/// Lugar de ejecución: provincia y comunidad autónoma (NUTS).
+table Territorio
+
+	column 'Código de territorio'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_territorio
+
+	column Provincia
+		dataType: string
+		summarizeBy: none
+		sourceColumn: provincia
+
+	column 'Código de comunidad'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_comunidad
+
+	column Comunidad
+		dataType: string
+		summarizeBy: none
+		sourceColumn: comunidad
+		dataCategory: StateOrProvince
+
+	/// Código ISO 3166-2 de la comunidad, para el mapa de formas.
+	column 'Código ISO'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: iso
+
+	hierarchy 'Comunidad y provincia'
+		level Comunidad
+			column: Comunidad
+
+		level Provincia
+			column: Provincia
+
+	partition Territorio = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(CarpetaDeDatos & "dim_territorio.parquet")),
+				    Tipos = Table.TransformColumnTypes(Origen, {{"cod_territorio", type text}, {"provincia", type text}, {"cod_comunidad", type text}, {"comunidad", type text}, {"iso", type text}})
+				in
+				    Tipos

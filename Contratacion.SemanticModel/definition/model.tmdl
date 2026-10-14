@@ -1,0 +1,26 @@
+model Model
+	culture: es-ES
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: es-ES
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+ref table Medidas
+ref table Periodo
+ref table Licitaciones
+ref table Adjudicaciones
+ref table Fecha
+ref table 'Órgano'
+ref table Territorio
+ref table 'Tipo de contrato'
+ref table Procedimiento
+ref table Estado
+ref table Resultado
+ref table CPV
+ref table Adjudicatario
+ref table 'Top N'
+ref table Acceso
+
+ref role Comunidad

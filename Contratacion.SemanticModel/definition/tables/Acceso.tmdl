@@ -1,0 +1,29 @@
+/// Quién ve qué comunidad con el rol «Comunidad» (seguridad por filas). Las cuentas son las ficticias del radar; en
+/// un despliegue real esta tabla vendría de una fuente gestionada (una lista de SharePoint, una tabla de la base...).
+table Acceso
+	isHidden
+
+	column Correo
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: Correo
+
+	column 'Código de comunidad'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: Código de comunidad
+
+	partition Acceso = m
+		mode: import
+		source =
+				#table(
+				    type table [Correo = text, #"Código de comunidad" = text],
+				    {
+				        {"ana@demo.example", "ES62"},
+				        {"ana@demo.example", "ES52"},
+				        {"admin@demo.example", "ES30"}
+				    }
+				)
+

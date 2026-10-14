@@ -1,0 +1,22 @@
+/// Resultado de la adjudicación de una licitación o de un lote.
+table Resultado
+
+	column 'Código de resultado'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_resultado
+
+	column Resultado
+		dataType: string
+		summarizeBy: none
+		sourceColumn: resultado
+
+	partition Resultado = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(CarpetaDeDatos & "dim_resultado.parquet")),
+				    Tipos = Table.TransformColumnTypes(Origen, {{"cod_resultado", type text}, {"resultado", type text}})
+				in
+				    Tipos

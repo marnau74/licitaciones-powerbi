@@ -1,0 +1,13 @@
+# Los Parquet se publican como release, no van en el repositorio.
+datos/
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+# Power BI Desktop: caché local y ajustes de cada usuario.
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+
+# Compilación del validador.
+validar/bin/
+validar/obj/

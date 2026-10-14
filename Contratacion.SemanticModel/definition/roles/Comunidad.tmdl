@@ -1,0 +1,12 @@
+/// Cada usuario solo ve las licitaciones y adjudicaciones de sus comunidades (tabla Acceso). Se prueba en Power BI
+/// Desktop con «Modelado > Ver como > Otro usuario».
+role Comunidad
+	modelPermission: read
+
+	tablePermission Territorio =
+			Territorio[Código de comunidad]
+			    IN CALCULATETABLE (
+			        VALUES ( Acceso[Código de comunidad] ),
+			        Acceso[Correo] = USERPRINCIPALNAME ()
+			    )
+

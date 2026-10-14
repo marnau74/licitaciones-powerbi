@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preparacion:
+    name: Exportación y cifras (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest
+
+  modelo:
+    name: Modelo TMDL e informe PBIR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: TMDL con la biblioteca oficial (TOM) y las reglas del proyecto
+        run: dotnet run --project validar -- Contratacion.SemanticModel/definition
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      - name: Ficheros del informe contra los esquemas de Microsoft
+        run: |
+          uvx check-jsonschema --schemafile https://developer.microsoft.com/json-schemas/fabric/item/report/definitionProperties/2.0.0/schema.json Contratacion.Report/definition.pbir
+          uvx check-jsonschema --schemafile https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.0.0/schema.json Contratacion.Report/definition/report.json
+          uvx check-jsonschema --schemafile https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.0.0/schema.json Contratacion.Report/definition/pages/pages.json
+          uvx check-jsonschema --schemafile https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.0.0/schema.json Contratacion.Report/definition/pages/*/page.json

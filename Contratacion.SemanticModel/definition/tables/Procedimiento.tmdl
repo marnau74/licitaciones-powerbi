@@ -1,0 +1,22 @@
+/// Procedimiento de adjudicación.
+table Procedimiento
+
+	column 'Código de procedimiento'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_procedimiento
+
+	column Procedimiento
+		dataType: string
+		summarizeBy: none
+		sourceColumn: procedimiento
+
+	partition Procedimiento = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(CarpetaDeDatos & "dim_procedimiento.parquet")),
+				    Tipos = Table.TransformColumnTypes(Origen, {{"cod_procedimiento", type text}, {"procedimiento", type text}})
+				in
+				    Tipos

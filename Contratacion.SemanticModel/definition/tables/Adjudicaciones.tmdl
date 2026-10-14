@@ -1,0 +1,128 @@
+/// Un resultado por licitación o por lote: adjudicado, formalizado, desierto...
+table Adjudicaciones
+
+	column 'Id de resultado'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: id_resultado
+
+	column 'Número de licitación'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: id_licitacion
+
+	column Lote
+		dataType: string
+		summarizeBy: none
+		sourceColumn: lote
+
+	column 'Código de resultado'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_resultado
+
+	column Adjudicado
+		dataType: boolean
+		isHidden
+		summarizeBy: none
+		sourceColumn: adjudicado
+
+	column Desierto
+		dataType: boolean
+		isHidden
+		summarizeBy: none
+		sourceColumn: desierto
+
+	column 'Fecha de adjudicación'
+		dataType: dateTime
+		isHidden
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: fecha_adjudicacion
+
+	column 'Fecha de publicación'
+		dataType: dateTime
+		isHidden
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: fecha_publicacion
+
+	column 'Id de órgano'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: id_organo
+
+	column 'Código de territorio'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_territorio
+
+	column 'Código de tipo de contrato'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_tipo_contrato
+
+	column 'Código de procedimiento'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_procedimiento
+
+	column 'Código de división CPV'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: cod_cpv_division
+
+	column 'NIF del adjudicatario'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: nif_adjudicatario
+
+	/// Ofertas presentadas a la licitación o al lote.
+	column 'Ofertas recibidas'
+		dataType: int64
+		summarizeBy: none
+		sourceColumn: ofertas_recibidas
+
+	column 'Importe adjudicado'
+		dataType: decimal
+		isHidden
+		formatString: #,0.00 €
+		summarizeBy: none
+		sourceColumn: importe_adjudicado
+
+	column 'Importe licitado'
+		dataType: decimal
+		isHidden
+		formatString: #,0.00 €
+		summarizeBy: none
+		sourceColumn: importe_licitado
+
+	column 'Importe comparable'
+		dataType: boolean
+		isHidden
+		summarizeBy: none
+		sourceColumn: importe_comparable
+
+	/// El adjudicatario declara ser pyme.
+	column Pyme
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: pyme
+
+	partition Adjudicaciones = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(CarpetaDeDatos & "hechos_adjudicacion.parquet")),
+				    Tipos = Table.TransformColumnTypes(Origen, {{"id_resultado", Int64.Type}, {"id_licitacion", Int64.Type}, {"lote", type text}, {"cod_resultado", type text}, {"adjudicado", type logical}, {"desierto", type logical}, {"fecha_adjudicacion", type date}, {"fecha_publicacion", type date}, {"id_organo", Int64.Type}, {"cod_territorio", type text}, {"cod_tipo_contrato", type text}, {"cod_procedimiento", type text}, {"cod_cpv_division", type text}, {"nif_adjudicatario", type text}, {"ofertas_recibidas", Int64.Type}, {"importe_adjudicado", Currency.Type}, {"importe_licitado", Currency.Type}, {"importe_comparable", type logical}, {"pyme", type logical}})
+				in
+				    Tipos

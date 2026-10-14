@@ -1,0 +1,211 @@
+/// Todas las medidas del informe. No hay medidas implícitas: el modelo las desactiva.
+table Medidas
+
+	/// Licitaciones publicadas (sin las anuladas).
+	measure Licitaciones = COUNTROWS ( Licitaciones )
+		formatString: #,0
+		displayFolder: Volumen
+
+	/// Suma del importe de licitación sin IVA. Las licitaciones sin importe publicado no suman.
+	measure 'Importe licitado' = SUM ( Licitaciones[Importe sin IVA] )
+		formatString: #,0 €
+		displayFolder: Volumen
+
+	/// Importe medio de las licitaciones que publican importe.
+	measure 'Importe medio' = AVERAGE ( Licitaciones[Importe sin IVA] )
+		formatString: #,0 €
+		displayFolder: Volumen
+
+	/// Importe mediano: la mitad de las licitaciones están por debajo. Menos sensible que la media a los contratos enormes.
+	measure 'Importe mediano' = MEDIAN ( Licitaciones[Importe sin IVA] )
+		formatString: #,0 €
+		displayFolder: Volumen
+
+	/// Parte de las licitaciones financiadas con fondos europeos.
+	measure '% con fondos UE' =
+			DIVIDE (
+			    CALCULATE ( [Licitaciones], Licitaciones[Fondos UE] = TRUE () ),
+			    [Licitaciones]
+			)
+		formatString: 0.0 %
+		displayFolder: Volumen
+
+	/// Mediana de los días entre la publicación y el fin del plazo de presentación de ofertas.
+	measure 'Días de plazo (mediana)' = MEDIAN ( Licitaciones[Días de plazo] )
+		formatString: #,0
+		displayFolder: Volumen
+
+	/// Resultados adjudicados o formalizados (por licitación o por lote).
+	measure Adjudicaciones =
+			CALCULATE ( COUNTROWS ( Adjudicaciones ), Adjudicaciones[Adjudicado] = TRUE () )
+		formatString: #,0
+		displayFolder: Adjudicación
+
+	/// Suma del importe adjudicado sin IVA.
+	measure 'Importe adjudicado' =
+			CALCULATE ( SUM ( Adjudicaciones[Importe adjudicado] ), Adjudicaciones[Adjudicado] = TRUE () )
+		formatString: #,0 €
+		displayFolder: Adjudicación
+
+	/// Ahorro sobre el importe licitado: 1 − adjudicado / licitado, como cociente de sumas (no media de porcentajes) y
+	/// solo con los resultados en los que los dos importes son comparables.
+	measure '% de baja' =
+			VAR Comparables =
+			    CALCULATETABLE (
+			        Adjudicaciones,
+			        Adjudicaciones[Adjudicado] = TRUE (),
+			        Adjudicaciones[Importe comparable] = TRUE ()
+			    )
+			VAR Licitado = SUMX ( Comparables, Adjudicaciones[Importe licitado] )
+			VAR Adjudicado = SUMX ( Comparables, Adjudicaciones[Importe adjudicado] )
+			RETURN
+			    DIVIDE ( Licitado - Adjudicado, Licitado )
+		formatString: 0.0 %
+		displayFolder: Adjudicación
+
+	/// Media de ofertas recibidas por resultado adjudicado (solo donde se publica el número).
+	measure 'Ofertas por adjudicación' =
+			CALCULATE (
+			    AVERAGE ( Adjudicaciones[Ofertas recibidas] ),
+			    Adjudicaciones[Adjudicado] = TRUE (),
+			    Adjudicaciones[Ofertas recibidas] >= 1
+			)
+		formatString: #,0.0
+		displayFolder: Adjudicación
+
+	/// Parte de las adjudicaciones con una sola oferta: la competencia que no hubo.
+	measure '% con una sola oferta' =
+			DIVIDE (
+			    CALCULATE (
+			        COUNTROWS ( Adjudicaciones ),
+			        Adjudicaciones[Adjudicado] = TRUE (),
+			        Adjudicaciones[Ofertas recibidas] = 1
+			    ),
+			    CALCULATE (
+			        COUNTROWS ( Adjudicaciones ),
+			        Adjudicaciones[Adjudicado] = TRUE (),
+			        Adjudicaciones[Ofertas recibidas] >= 1
+			    )
+			)
+		formatString: 0.0 %
+		displayFolder: Adjudicación
+
+	/// Parte del importe adjudicado que se lleva una pyme.
+	measure '% del importe a pymes' =
+			DIVIDE ( CALCULATE ( [Importe adjudicado], Adjudicaciones[Pyme] = TRUE () ), [Importe adjudicado] )
+		formatString: 0.0 %
+		displayFolder: Adjudicación
+
+	/// Parte de los resultados que quedan desiertos (nadie se presenta o ninguna oferta vale).
+	measure '% desiertos' =
+			DIVIDE (
+			    CALCULATE ( COUNTROWS ( Adjudicaciones ), Adjudicaciones[Desierto] = TRUE () ),
+			    COUNTROWS ( Adjudicaciones )
+			)
+		formatString: 0.0 %
+		displayFolder: Adjudicación
+
+	/// Empresas distintas (por NIF) con alguna adjudicación.
+	measure 'Adjudicatarios distintos' =
+			CALCULATE (
+			    DISTINCTCOUNT ( Adjudicaciones[NIF del adjudicatario] ),
+			    Adjudicaciones[Adjudicado] = TRUE (),
+			    Adjudicaciones[NIF del adjudicatario] <> "SIN-NIF"
+			)
+		formatString: #,0
+		displayFolder: Adjudicación
+
+	/// Importe adjudicado por la fecha de adjudicación en lugar de la de publicación (relación inactiva).
+	measure 'Importe adjudicado por fecha de adjudicación' =
+			CALCULATE (
+			    [Importe adjudicado],
+			    USERELATIONSHIP ( Adjudicaciones[Fecha de adjudicación], Fecha[Fecha] )
+			)
+		formatString: #,0 €
+		displayFolder: Tiempo
+
+	/// Licitaciones publicadas desde el 1 de enero hasta la fecha del contexto.
+	measure 'Licitaciones en lo que va de año' = TOTALYTD ( [Licitaciones], Fecha[Fecha] )
+		formatString: #,0
+		displayFolder: Tiempo
+
+	/// Las licitaciones del mes anterior al del contexto.
+	measure 'Licitaciones del mes anterior' =
+			CALCULATE ( [Licitaciones], DATEADD ( Fecha[Fecha], -1, MONTH ) )
+		formatString: #,0
+		displayFolder: Tiempo
+
+	/// Variación de las licitaciones frente al mes anterior.
+	measure 'Variación mensual de licitaciones' =
+			VAR Anterior = [Licitaciones del mes anterior]
+			RETURN
+			    DIVIDE ( [Licitaciones] - Anterior, Anterior )
+		formatString: +0.0 %;-0.0 %;0.0 %
+		displayFolder: Tiempo
+
+	/// Puesto del órgano por importe licitado entre los órganos visibles.
+	measure 'Puesto del órgano' =
+			IF (
+			    HASONEVALUE ( 'Órgano'[Órgano] ),
+			    RANKX ( ALLSELECTED ( 'Órgano'[Órgano] ), [Importe licitado], , DESC, DENSE )
+			)
+		formatString: #,0
+		displayFolder: Ranking
+
+	/// Puesto del adjudicatario por importe adjudicado entre los visibles.
+	measure 'Puesto del adjudicatario' =
+			IF (
+			    HASONEVALUE ( Adjudicatario[NIF del adjudicatario] ),
+			    RANKX (
+			        ALLSELECTED ( Adjudicatario[NIF del adjudicatario] ),
+			        [Importe adjudicado],
+			        ,
+			        DESC,
+			        DENSE
+			    )
+			)
+		formatString: #,0
+		displayFolder: Ranking
+
+	/// El valor elegido en el segmentador de Top N (10 si no se elige ninguno).
+	measure 'Top N elegido' = SELECTEDVALUE ( 'Top N'[Top N], 10 )
+		formatString: #,0
+		displayFolder: Ranking
+
+	/// Importe licitado solo de los órganos que están entre los N primeros (para los gráficos de ranking).
+	measure 'Importe licitado (top N órganos)' =
+			IF ( [Puesto del órgano] <= [Top N elegido], [Importe licitado] )
+		formatString: #,0 €
+		displayFolder: Ranking
+
+	/// Importe adjudicado solo de los adjudicatarios que están entre los N primeros.
+	measure 'Importe adjudicado (top N adjudicatarios)' =
+			IF ( [Puesto del adjudicatario] <= [Top N elegido], [Importe adjudicado] )
+		formatString: #,0 €
+		displayFolder: Ranking
+
+	/// Concentración: parte del importe adjudicado que se llevan las 10 empresas con más importe.
+	measure 'Cuota de los 10 primeros adjudicatarios' =
+			VAR Empresas =
+			    FILTER (
+			        ALLSELECTED ( Adjudicatario[NIF del adjudicatario] ),
+			        Adjudicatario[NIF del adjudicatario] <> "SIN-NIF"
+			    )
+			VAR Primeros = TOPN ( 10, Empresas, [Importe adjudicado], DESC )
+			RETURN
+			    DIVIDE (
+			        CALCULATE ( [Importe adjudicado], Primeros ),
+			        CALCULATE ( [Importe adjudicado], ALLSELECTED ( Adjudicatario ) )
+			    )
+		formatString: 0.0 %
+		displayFolder: Ranking
+
+	column Oculta
+		dataType: string
+		isHidden
+		isNameInferred
+		sourceColumn: [Oculta]
+
+	partition Medidas = calculated
+		mode: import
+		source = ROW ( "Oculta", "" )

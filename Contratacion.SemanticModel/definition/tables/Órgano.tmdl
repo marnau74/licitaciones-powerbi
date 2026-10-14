@@ -1,0 +1,59 @@
+/// Órganos de contratación con alguna licitación en el periodo.
+table 'Órgano'
+
+	column 'Id de órgano'
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: id_organo
+
+	column 'Órgano'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: organo
+
+	column NIF
+		dataType: string
+		summarizeBy: none
+		sourceColumn: nif
+
+	column DIR3
+		dataType: string
+		summarizeBy: none
+		sourceColumn: dir3
+
+	column Ciudad
+		dataType: string
+		summarizeBy: none
+		sourceColumn: ciudad
+		dataCategory: City
+
+	column 'Tipo de órgano'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: tipo_organo
+
+	/// Estatal, autonómica, local u otras entidades, según el tipo de órgano.
+	column 'Administración'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: administracion
+
+	hierarchy 'Administración y órgano'
+		level 'Administración'
+			column: 'Administración'
+
+		level 'Tipo de órgano'
+			column: 'Tipo de órgano'
+
+		level 'Órgano'
+			column: 'Órgano'
+
+	partition 'Órgano' = m
+		mode: import
+		source =
+				let
+				    Origen = Parquet.Document(File.Contents(CarpetaDeDatos & "dim_organo.parquet")),
+				    Tipos = Table.TransformColumnTypes(Origen, {{"id_organo", Int64.Type}, {"organo", type text}, {"nif", type text}, {"dir3", type text}, {"ciudad", type text}, {"tipo_organo", type text}, {"administracion", type text}})
+				in
+				    Tipos
