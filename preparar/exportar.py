@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import secrets
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -18,6 +19,9 @@ from pathlib import Path
 import duckdb
 
 SQL = Path(__file__).with_name("modelo.sql")
+
+# NIF de persona física: DNI (8 cifras y letra) o NIE y similares (K, L, M, X, Y, Z, 7 cifras y letra), con o sin «ES».
+NIF_DE_PERSONA = r"^(ES)?([0-9]{8}|[KLMXYZ][0-9]{7})[A-Z]$"
 
 # Tabla -> clave primaria.
 CLAVES = {
@@ -74,6 +78,26 @@ def construir(con: duckdb.DuckDBPyConnection, periodo: Periodo) -> None:
     """Crea las tablas del modelo en `con`, que tiene que tener la base del radar enganchada como `radar`."""
     sql = SQL.read_text(encoding="utf-8").format(desde=periodo.desde, hasta=periodo.hasta, anio=periodo.desde.year)
     con.execute(sql)
+    seudonimizar(con)
+
+
+def seudonimizar(con: duckdb.DuckDBPyConnection) -> None:
+    """Quita los datos personales de los adjudicatarios que son personas físicas (autónomos).
+
+    La Plataforma de Contratación publica su nombre y su DNI, pero eso no justifica redistribuirlos en bloque. Su NIF se
+    cambia por un código que sale de un resumen con una sal aleatoria que no se guarda: es el mismo en las dos tablas
+    (la relación del modelo sigue funcionando y se pueden contar) pero no se puede volver al DNI. El nombre pasa a ser
+    «Persona física». Las empresas y las administraciones no cambian.
+    """
+    sal = secrets.token_hex(16)
+    codigo = "'PF-' || upper(substr(sha256(nif_adjudicatario || ?), 1, 12))"
+    es_persona = f"regexp_matches(nif_adjudicatario, '{NIF_DE_PERSONA}')"
+    con.execute(f"UPDATE hechos_adjudicacion SET nif_adjudicatario = {codigo} WHERE {es_persona}", [sal])
+    con.execute(
+        f"UPDATE dim_adjudicatario SET nif_adjudicatario = {codigo}, adjudicatario = 'Persona física' "
+        f"WHERE {es_persona}",
+        [sal],
+    )
 
 
 def comprobar(con: duckdb.DuckDBPyConnection, periodo: Periodo) -> list[str]:

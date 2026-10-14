@@ -153,6 +153,33 @@ def test_adjudicatarios_agrupados_por_nif_normalizado(con):
     assert pyme == [(True,)]
 
 
+def test_las_personas_fisicas_no_salen_con_su_nombre_ni_su_dni():
+    conexion = duckdb.connect()
+    conexion.execute(ESQUEMA)
+    conexion.execute(
+        """INSERT INTO radar.public.resultado VALUES
+        (106, 11, NULL, '8', DATE '2026-04-12', 1, 'Ana Martínez López', '12345678-Z', 30000, true),
+        (107, 11, NULL, '8', DATE '2026-04-13', 1, 'Ana Martínez López', 'X1234567L', 20000, true)"""
+    )
+    construir(conexion, PERIODO)
+
+    personas = filas(
+        conexion, "SELECT nif_adjudicatario, adjudicatario FROM dim_adjudicatario WHERE nif_adjudicatario LIKE 'PF-%'"
+    )
+    assert len(personas) == 2
+    assert all(nombre == "Persona física" for _, nombre in personas)
+    volcado = str(filas(conexion, "SELECT * FROM dim_adjudicatario")) + str(
+        filas(conexion, "SELECT * FROM hechos_adjudicacion")
+    )
+    assert "12345678Z" not in volcado and "X1234567L" not in volcado and "Martínez" not in volcado
+    # El código es el mismo en las dos tablas: la relación del modelo sigue funcionando.
+    assert comprobar(conexion, PERIODO) == []
+    # Las empresas no cambian.
+    assert filas(conexion, "SELECT adjudicatario FROM dim_adjudicatario WHERE nif_adjudicatario = 'B87654321'") == [
+        ("Software Murcia SL",)
+    ]
+
+
 def test_adjudicado_y_desierto(con):
     assert dict(filas(con, "SELECT id_resultado, adjudicado FROM hechos_adjudicacion"))[104] is False
     assert filas(con, "SELECT desierto FROM hechos_adjudicacion WHERE id_resultado = 104") == [(True,)]

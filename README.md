@@ -38,6 +38,11 @@ del repositorio, no en Git). Solo entran las licitaciones **publicadas** en el p
 escribir nada comprueba el modelo y se para si algo falla: claves únicas, ninguna clave sin su dimensión, importes no
 negativos y el mismo número de licitaciones por mes que en la base.
 
+**Datos personales.** Entre los adjudicatarios hay personas físicas (autónomos) que la Plataforma publica con su nombre
+y su DNI. En los Parquet salen como «Persona física» y con un código en lugar del DNI, calculado con una sal aleatoria
+que no se guarda: se pueden contar y la relación del modelo funciona, pero no se puede volver al DNI. Las empresas y
+las administraciones no cambian. Las cifras de control son las mismas.
+
 ## Modelo
 
 ```mermaid
